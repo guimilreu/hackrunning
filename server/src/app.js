@@ -49,7 +49,10 @@ const corsOptions = {
     const allowedOrigins = [
       process.env.FRONTEND_URL || 'http://localhost:3000',
       'http://localhost:3000',
-      'http://localhost:5173'
+      'http://localhost:5173',
+      'https://app.hackrunning.com.br',
+      'https://www.app.hackrunning.com.br',
+      'https://www.hackrunning.com.br'
     ];
     
     // Permitir requisições sem origin (mobile apps, Postman, etc)
