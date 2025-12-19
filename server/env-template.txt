@@ -1,0 +1,41 @@
+# MongoDB
+MONGODB_URI=mongodb://localhost:27017/hack-running
+
+# JWT Authentication
+JWT_SECRET=seu-jwt-secret-super-seguro-aqui-altere-em-producao
+JWT_EXPIRES_IN=7d
+JWT_REFRESH_EXPIRES_IN=30d
+
+# AWS S3
+AWS_ACCESS_KEY_ID=sua-aws-access-key-id
+AWS_SECRET_ACCESS_KEY=sua-aws-secret-access-key
+AWS_REGION=sa-east-1
+AWS_S3_BUCKET=seu-bucket-s3
+AWS_CDN_URL=https://seu-cdn.cloudfront.net
+
+# Asaas (Pagamentos)
+ASAAS_API_KEY=sua-asaas-api-key
+ASAAS_API_URL=https://api.asaas.com/v3
+ASAAS_WEBHOOK_TOKEN=seu-asaas-webhook-token
+
+# Resend (Emails)
+RESEND_API_KEY=sua-resend-api-key
+RESEND_FROM_EMAIL=noreply@hackrunning.com.br
+
+# Mapbox (Mapas)
+MAPBOX_ACCESS_TOKEN=seu-mapbox-access-token
+
+# Strava (Integração)
+STRAVA_CLIENT_ID=seu-strava-client-id
+STRAVA_CLIENT_SECRET=seu-strava-client-secret
+STRAVA_REDIRECT_URI=http://localhost:5000/api/auth/strava/callback
+STRAVA_CLUB_ID=id-do-clube-strava-opcional
+ENCRYPTION_KEY=sua-chave-de-criptografia-32-caracteres
+
+# Frontend
+FRONTEND_URL=http://localhost:3000
+
+# Server
+PORT=5000
+NODE_ENV=development
+ENABLE_JOBS=false

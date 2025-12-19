@@ -1,0 +1,21 @@
+// Exporta todos os controllers de um ponto central
+export { default as authController } from './authController.js';
+export { default as userController } from './userController.js';
+export { default as onboardingController } from './onboardingController.js';
+export { default as workoutController } from './workoutController.js';
+export { default as trainingPlanController } from './trainingPlanController.js';
+export { default as cycleController } from './cycleController.js';
+export { default as hpointController } from './hpointController.js';
+export { default as productController } from './productController.js';
+export { default as redemptionController } from './redemptionController.js';
+export { default as eventController } from './eventController.js';
+export { default as challengeController } from './challengeController.js';
+export { default as companyController } from './companyController.js';
+export { default as orderController } from './orderController.js';
+export { default as contentController } from './contentController.js';
+export { default as notificationController } from './notificationController.js';
+export { default as settingController } from './settingController.js';
+export { default as uploadController } from './uploadController.js';
+export { default as integrationController } from './integrationController.js';
+export { default as webhookController } from './webhookController.js';
+export { default as adminController } from './adminController.js';
