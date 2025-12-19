@@ -40,9 +40,24 @@ const NAV_CATEGORIES = [
 ];
 
 export default function AppLayout({ children }) {
-  const { isAuthenticated, user, logout, _hasHydrated } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
+  
+  // PRIMEIRO: Verificar se está em rotas que não precisam do AppLayout
+  // Isso deve ser feito ANTES de chamar qualquer hook do Query
+  const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('/forgot-password');
+  const isOnboardingRoute = pathname.includes('/onboarding');
+  const isCheckoutRoute = pathname.includes('/checkout');
+  const isAdminRoute = pathname.startsWith('/admin');
+  
+  // Se for rota de auth, admin, onboarding ou checkout, retornar apenas children
+  // SEM chamar nenhum hook do Query ou do Zustand desnecessariamente
+  if (isAuthRoute || isAdminRoute || isOnboardingRoute || isCheckoutRoute) {
+    return <>{children}</>;
+  }
+  
+  // DEPOIS: Carregar dados do usuário e chamar hooks do Query
+  const { isAuthenticated, user, logout, _hasHydrated } = useAuthStore();
   
   // Só chamar hooks do Query quando estiver autenticado e hidratado
   const shouldFetch = _hasHydrated && isAuthenticated;
@@ -52,8 +67,6 @@ export default function AppLayout({ children }) {
   const balance = balanceData?.balance || 0;
   const onboardingComplete = onboardingData?.data?.completed || user?.onboarding?.completed || false;
   const hasPaymentPending = user?.kickstartKit?.paymentPending || false;
-  const isOnboardingRoute = pathname.includes('/onboarding');
-  const isCheckoutRoute = pathname.includes('/checkout');
   const isPaymentPendingRoute = pathname.includes('/onboarding/payment-pending');
 
   useEffect(() => {
@@ -104,11 +117,6 @@ export default function AppLayout({ children }) {
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
-  }
-  
-  // Rotas de onboarding e checkout têm layout próprio
-  if (isOnboardingRoute || isCheckoutRoute) {
-      return <div className="min-h-screen bg-background">{children}</div>;
   }
 
   // Itens principais da navegação
