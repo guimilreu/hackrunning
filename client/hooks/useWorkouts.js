@@ -61,13 +61,16 @@ export const useUpdateWorkout = () => {
   return useMutation({
     mutationFn: async ({ id, data }) => {
       const response = await api.put(`/workouts/${id}`, data);
-      return response.data;
+      return { ...response.data, id };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['workouts'] });
       queryClient.invalidateQueries({ queryKey: ['communityFeedPreview'] });
       queryClient.invalidateQueries({ queryKey: ['communityFeed'] });
       queryClient.invalidateQueries({ queryKey: ['recentWorkouts'] });
+      if (data.id) {
+        queryClient.invalidateQueries({ queryKey: ['workout', data.id] });
+      }
       toast.success('Treino atualizado com sucesso!');
     },
     onError: (error) => {
@@ -83,6 +86,22 @@ export const useTrainingPlan = () => {
       const response = await api.get('/training-plans/current');
       return response.data?.data?.plan || response.data?.plan;
     },
+    retry: false,
+  });
+};
+
+/**
+ * Hook para buscar um treino específico por ID
+ */
+export const useWorkout = (id) => {
+  return useQuery({
+    queryKey: ['workout', id],
+    queryFn: async () => {
+      if (!id) return null;
+      const response = await api.get(`/workouts/${id}`);
+      return response.data?.data?.workout;
+    },
+    enabled: !!id,
     retry: false,
   });
 };
@@ -174,10 +193,13 @@ export const useShareWorkout = () => {
   return useMutation({
     mutationFn: async ({ workoutId, platform }) => {
       const response = await api.post(`/workouts/${workoutId}/share`, { platform });
-      return response.data;
+      return { ...response.data, workoutId };
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['workouts'] });
+      if (data.workoutId) {
+        queryClient.invalidateQueries({ queryKey: ['workout', data.workoutId] });
+      }
       toast.success('Compartilhamento registrado!');
     },
     onError: (error) => {
