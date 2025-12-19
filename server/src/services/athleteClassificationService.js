@@ -6,7 +6,7 @@
 /**
  * Classifica o aluno por experiência
  * @param {Object} userData - Dados do usuário
- * @returns {String} Nível de experiência
+ * @returns {String} Nível de experiêencia
  */
 export const classifyByExperience = (userData) => {
   const { runningHistory, physicalTests, onboarding } = userData;

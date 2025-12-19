@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import Cookies from 'js-cookie';
-import axios from 'axios';
+import api from '@/lib/api';
 
 // Custom storage que usa cookies para o token
 const cookieStorage = {
@@ -58,7 +58,7 @@ export const useAuthStore = create(
         }
 
         try {
-          const response = await axios.get('/api/auth/me', {
+          const response = await api.get('/api/auth/me', {
             headers: {
               Authorization: `Bearer ${token}`,
             },
