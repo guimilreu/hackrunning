@@ -4,9 +4,10 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 
-export const useOnboarding = () => {
+export const useOnboarding = (options = {}) => {
   return useQuery({
     queryKey: ['onboarding', 'status'],
+    enabled: options.enabled !== false,
     queryFn: async () => {
       const response = await api.get('/onboarding/status');
       return response.data;

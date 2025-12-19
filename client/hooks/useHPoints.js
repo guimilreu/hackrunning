@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
 
-export const useHPointsBalance = () => {
+export const useHPointsBalance = (options = {}) => {
   return useQuery({
     queryKey: ['hpointsBalance'],
+    enabled: options.enabled !== false,
     queryFn: async () => {
       const response = await api.get('/hpoints/balance');
       // Backend retorna { success: true, data: { balance: { balance, totalEarned, totalRedeemed } } }
