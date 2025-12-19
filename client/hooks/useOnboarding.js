@@ -103,7 +103,7 @@ export const useCompleteOnboarding = () => {
       updateUser({ onboarding: { completed: true } });
       
       toast.success('Onboarding completo! Bem-vindo!');
-      router.push('/app/home');
+      router.push('/home');
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || 'Erro ao completar onboarding');
@@ -194,7 +194,7 @@ export const useSkipToKickstart = () => {
       await queryClient.invalidateQueries({ queryKey: ['user'] });
       
       toast.success('Você pode completar o cadastro depois!');
-      router.push('/app/onboarding/kickstart-kit');
+      router.push('/onboarding/kickstart-kit');
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || 'Erro ao pular etapas');

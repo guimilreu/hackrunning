@@ -12,7 +12,7 @@ export const classifyByExperience = (userData) => {
   const { runningHistory, physicalTests, onboarding } = userData;
 
   const inferExperienceMonthsFromRunningTime = (runningTime) => {
-    // Faixas do Step 1 (client/app/app/onboarding/step1/page.jsx)
+    // Faixas do Step 1 (client/app/onboarding/step1/page.jsx)
     switch (runningTime) {
       case '<6m':
         return 3;

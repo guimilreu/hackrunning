@@ -476,7 +476,7 @@ export const notifySubscriptionUpcoming = async (userId, subscriptionData) => {
   
   return createNotification(userId, 'subscription_upcoming', {
     message: `Seu plano ${plan} vence em ${daysUntil} dias. O valor de R$ ${value.toFixed(2)} ${paymentMethodText}.`,
-    link: '/app/subscription'
+    link: '/subscription'
   });
 };
 
@@ -492,7 +492,7 @@ export const notifySubscriptionDueToday = async (userId, subscriptionData) => {
   
   return createNotification(userId, 'subscription_due_today', {
     message: `Seu plano ${plan} vence hoje! O valor de R$ ${value.toFixed(2)} ${paymentMethodText}.`,
-    link: '/app/subscription'
+    link: '/subscription'
   });
 };
 
@@ -504,7 +504,7 @@ export const notifySubscriptionOverdue = async (userId, subscriptionData) => {
   
   return createNotification(userId, 'subscription_overdue', {
     message: `Seu plano ${plan} está vencido há ${daysOverdue} dias. Pague R$ ${value.toFixed(2)} para manter seu acesso.`,
-    link: '/app/subscription'
+    link: '/subscription'
   });
 };
 
@@ -518,7 +518,7 @@ export const notifySubscriptionNewCharge = async (userId, subscriptionData) => {
   
   return createNotification(userId, 'subscription_new_charge', {
     message: `Nova cobrança de R$ ${value.toFixed(2)} do seu plano ${plan} disponível. Clique para pagar via ${methodText}.`,
-    link: paymentUrl || '/app/subscription'
+    link: paymentUrl || '/subscription'
   });
 };
 
@@ -532,7 +532,7 @@ export const notifySubscriptionPaid = async (userId, subscriptionData) => {
   
   return createNotification(userId, 'subscription_paid', {
     message: `Seu plano ${plan} foi renovado com sucesso! Próxima cobrança: ${nextDate}.`,
-    link: '/app/subscription'
+    link: '/subscription'
   });
 };
 

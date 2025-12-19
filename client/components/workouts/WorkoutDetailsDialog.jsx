@@ -119,14 +119,14 @@ export function WorkoutDetailsDialog({ workout, open, onOpenChange, defaultUser 
       navigator.share({
         title: 'Confira este treino!',
         text: `Treino de ${currentWorkout.distance}km no Hack Running`,
-        url: window.location.origin + '/app/home'
+        url: window.location.origin + '/home'
       }).then(() => {
         shareWorkout({ workoutId: currentWorkout._id, platform: 'native' });
       }).catch((err) => {
         console.log('Erro ao compartilhar:', err);
       });
     } else {
-      navigator.clipboard.writeText(window.location.origin + '/app/home').then(() => {
+      navigator.clipboard.writeText(window.location.origin + '/home').then(() => {
         shareWorkout({ workoutId: currentWorkout._id, platform: 'link' });
         toast.success('Link copiado para área de transferência!');
       });

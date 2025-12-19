@@ -11,7 +11,7 @@ export default function AuthLayout({ children }) {
 
 	useEffect(() => {
 		if (_hasHydrated && isAuthenticated) {
-			router.push("/app/home");
+			router.push("/home");
 		}
 	}, [isAuthenticated, _hasHydrated, router]);
 

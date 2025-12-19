@@ -51,7 +51,7 @@ export default function AdminLayout({ children }) {
 			}
 			// Verificar se é admin
 			if (user?.role !== "admin" && user?.role !== "super_admin") {
-				router.push("/app/home");
+				router.push("/home");
 			}
 		}
 	}, [isAuthenticated, _hasHydrated, user, router]);
@@ -129,7 +129,7 @@ export default function AdminLayout({ children }) {
 							</div>
 						</div>
 						<div className="grid grid-cols-2 gap-2">
-							<Link href="/app/home">
+							<Link href="/home">
 								<Button variant="outline" size="sm" className="w-full h-8 text-xs border-white/10 hover:bg-white/5 hover:text-white">
 									App
 								</Button>

@@ -24,11 +24,11 @@ export const useLogin = () => {
       
       if (hasPaymentPending) {
         // Se tem pagamento pendente, ir direto para a tela de aguardar pagamento
-        router.push('/app/onboarding/payment-pending');
+        router.push('/onboarding/payment-pending');
       } else if (onboardingComplete) {
-        router.push('/app/home');
+        router.push('/home');
       } else {
-        router.push('/app/onboarding/step1');
+        router.push('/onboarding/step1');
       }
     },
     onError: (error) => {
@@ -58,11 +58,11 @@ export const useRegister = () => {
       
       if (hasPaymentPending) {
         // Se tem pagamento pendente, ir direto para a tela de aguardar pagamento
-        router.push('/app/onboarding/payment-pending');
+        router.push('/onboarding/payment-pending');
       } else if (onboardingComplete) {
-        router.push('/app/home');
+        router.push('/home');
       } else {
-        router.push('/app/onboarding/step1');
+        router.push('/onboarding/step1');
       }
     },
     onError: (error) => {

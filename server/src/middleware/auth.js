@@ -314,7 +314,7 @@ export const requireOnboarding = (req, res, next) => {
     return res.status(403).json({ 
       success: false, 
       message: 'Complete o onboarding primeiro',
-      redirectTo: '/app/onboarding/step1'
+      redirectTo: '/onboarding/step1'
     });
   }
 
