@@ -25,6 +25,10 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
+// Configurar trust proxy para funcionar corretamente com proxies reversos (Docker, nginx, etc)
+// Isso permite que o Express confie nos headers X-Forwarded-For, X-Forwarded-Proto, etc
+app.set('trust proxy', true);
+
 // ========== MIDDLEWARES DE SEGURANÇA ==========
 
 // Helmet - Headers HTTP de segurança
