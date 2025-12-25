@@ -9,9 +9,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ArrowLeft, Calendar, MapPin, Users, Check, Loader2, Clock, Share2 } from 'lucide-react';
+import { EventMap } from '@/components/ui/event-map';
 import { safeFormatDate } from '@/lib/utils/date';
 import { useAuthStore } from '@/store/authStore';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 export default function TogetherDetailsPage() {
   const { id } = useParams();
@@ -63,14 +65,19 @@ export default function TogetherDetailsPage() {
   };
 
   const getParticipantName = (p) => {
-    if (p.user?.name) return p.user.name;
+    if (!p) return 'Runner';
     if (p.name) return p.name;
-    if (p.firstName) return `${p.firstName} ${p.lastName || ''}`;
-    return 'Atleta';
+    if (p.user?.name) return p.user.name;
+    if (p.firstName) {
+      const fullName = `${p.firstName}${p.lastName ? ` ${p.lastName}` : ''}`.trim();
+      return fullName || 'Runner';
+    }
+    return 'Runner';
   };
 
   const getParticipantPhoto = (p) => {
-    return p.user?.photo || p.photo || p.profilePhoto;
+    if (!p) return null;
+    return p.photo || p.user?.photo || p.profilePhoto || p.user?.profilePhoto || null;
   };
 
   return (
@@ -169,33 +176,36 @@ export default function TogetherDetailsPage() {
                     <h3 className="text-xl font-bold text-white flex items-center gap-2">
                         Quem vai
                         <span className="text-sm font-normal text-zinc-500 bg-white/5 px-2 py-0.5 rounded-md">
-                            {event.participants?.length || 0}
+                            {event.confirmed?.length || 0}
                         </span>
                     </h3>
                 </div>
 
-                {event.participants && event.participants.length > 0 ? (
+                {event.confirmed && event.confirmed.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {event.participants.map((participant, index) => {
+                        {event.confirmed.map((participant, index) => {
                             const name = getParticipantName(participant);
                             const photo = getParticipantPhoto(participant);
+                            const participantId = participant.userId?._id || participant.userId || participant._id;
+                            const isOwnProfile = participantId === user?._id;
                             
                             return (
-                                <div 
-                                    key={participant._id || index} 
-                                    className="flex items-center gap-3 p-3 rounded-xl bg-zinc-900/40 border border-white/5 hover:bg-zinc-800/40 transition-colors"
+                                <Link
+                                    key={participant._id || index}
+                                    href={isOwnProfile ? '/profile' : `/runner/${participantId}`}
+                                    className="flex items-center gap-3 p-3 rounded-xl bg-zinc-900/40 border border-white/5 hover:bg-zinc-800/40 transition-colors cursor-pointer"
                                 >
                                     <Avatar className="h-10 w-10 border border-white/10">
                                         <AvatarImage src={photo} />
                                         <AvatarFallback className="bg-zinc-800 text-xs font-bold text-zinc-400">
-                                            {name?.[0] || 'U'}
+                                            {name?.[0]?.toUpperCase() || 'U'}
                                         </AvatarFallback>
                                     </Avatar>
                                     <div>
-                                        <p className="font-bold text-white text-sm">{name}</p>
+                                        <p className="font-bold text-white text-sm hover:text-primary transition-colors">{name}</p>
                                         <p className="text-xs text-zinc-500">Confirmado</p>
                                     </div>
-                                </div>
+                                </Link>
                             );
                         })}
                     </div>
@@ -256,18 +266,39 @@ export default function TogetherDetailsPage() {
                     )}
                 </div>
 
-                {/* Additional Info / Maps Placeholder */}
+                {/* Additional Info / Maps */}
                 <div className="bg-zinc-900/30 rounded-2xl p-4 border border-white/5">
                     <div className="flex items-center gap-2 text-zinc-400 mb-2">
                          <MapPin className="w-4 h-4" />
                          <span className="text-sm font-bold">Localização</span>
                     </div>
-                    <div className="w-full h-32 bg-zinc-800 rounded-xl flex items-center justify-center text-zinc-600 text-xs">
-                        Mapa Indisponível
-                    </div>
-                     <Button variant="link" className="w-full text-zinc-400 hover:text-white mt-2 h-auto py-0 text-xs">
-                        Abrir no Maps
-                     </Button>
+                    {event.location?.coordinates?.lat && event.location?.coordinates?.lng ? (
+                        <div className="w-full h-64 rounded-xl overflow-hidden">
+                            <EventMap
+                                lat={event.location.coordinates.lat}
+                                lng={event.location.coordinates.lng}
+                                name={event.name}
+                                address={event.location.address ? `${event.location.address}, ${event.location.city}, ${event.location.state}` : ''}
+                                zoom={14}
+                            />
+                        </div>
+                    ) : (
+                        <div className="w-full h-32 bg-zinc-800 rounded-xl flex items-center justify-center text-zinc-600 text-xs">
+                            Mapa Indisponível
+                        </div>
+                    )}
+                    {event.location?.address && (
+                        <Button 
+                            variant="link" 
+                            className="w-full text-zinc-400 hover:text-white mt-2 h-auto py-0 text-xs"
+                            onClick={() => {
+                                const address = `${event.location.address}, ${event.location.city}, ${event.location.state}`;
+                                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`, '_blank');
+                            }}
+                        >
+                            Abrir no Maps
+                        </Button>
+                    )}
                 </div>
             </div>
         </div>

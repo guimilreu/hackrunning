@@ -59,6 +59,51 @@ router.get('/dashboard', authenticate, requireOnboarding, userController.getDash
  */
 router.get('/stats', authenticate, requireOnboarding, userController.getStats);
 
+/**
+ * @route GET /api/users/top-runners
+ * @desc Obter top 10 corredores da semana
+ * @access Private
+ */
+router.get('/top-runners', authenticate, requireOnboarding, userController.getTopRunners);
+
+// ========== Rotas Públicas ==========
+
+/**
+ * @route GET /api/users/public/:id
+ * @desc Obter perfil público de um usuário
+ * @access Private (autenticado)
+ */
+router.get('/public/:id',
+  authenticate,
+  requireOnboarding,
+  validate(schemas.objectId, 'params'),
+  userController.getPublicProfile
+);
+
+/**
+ * @route GET /api/users/public/:id/stats
+ * @desc Obter estatísticas públicas de um usuário
+ * @access Private (autenticado)
+ */
+router.get('/public/:id/stats',
+  authenticate,
+  requireOnboarding,
+  validate(schemas.objectId, 'params'),
+  userController.getPublicStats
+);
+
+/**
+ * @route GET /api/users/public/:id/workouts
+ * @desc Obter atividades públicas de um usuário
+ * @access Private (autenticado)
+ */
+router.get('/public/:id/workouts',
+  authenticate,
+  requireOnboarding,
+  validate(schemas.objectId, 'params'),
+  userController.getPublicWorkouts
+);
+
 // ========== Rotas Admin ==========
 
 /**

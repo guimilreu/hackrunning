@@ -10,20 +10,53 @@ const notificationSchema = new mongoose.Schema({
   type: { 
     type: String, 
     enum: [
+      // Workout
       'workout_approved', 
-      'workout_rejected', 
-      'hpoints_earned', 
+      'workout_rejected',
+      'workout_like',
+      'workout_comment',
+      'workout_reminder',
+      // HPoints
+      'hpoints_earned',
+      'points_earned',
+      'points_expiring',
+      // Redemption
       'redemption_approved',
-      'redemption_delivered', 
-      'new_challenge', 
+      'redemption_delivered',
+      'redemption_ready',
+      // Challenge
+      'new_challenge',
+      'challenge_new',
+      'challenge_completed',
+      // Event
+      'event_new',
+      'event_checkin',
+      'event_reminder',
       'together_upcoming', 
       'race_upcoming', 
+      // Goals
       'goal_achieved',
-      'points_expiring',
+      // Training Plan
       'training_plan_ready',
       'training_plan_reviewed',
+      'training_plan_updated',
+      // Kickstart
       'kickstart_shipped',
       'kickstart_delivered',
+      // Payment
+      'payment',
+      'payment_received',
+      'payment_failed',
+      // Subscription
+      'subscription',
+      'subscription_upcoming',
+      'subscription_due_today',
+      'subscription_overdue',
+      'subscription_new_charge',
+      'subscription_paid',
+      // Order
+      'order',
+      // System
       'system'
     ],
     required: [true, 'Tipo é obrigatório']

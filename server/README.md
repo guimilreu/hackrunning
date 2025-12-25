@@ -27,7 +27,7 @@ npm install
 npm run dev
 ```
 
-A API estará disponível em [http://localhost:5000](http://localhost:5000)
+A API estará disponível em [http://localhost:4000](http://localhost:4000)
 
 ## 🧪 Testes
 

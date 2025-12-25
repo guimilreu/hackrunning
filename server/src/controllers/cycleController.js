@@ -80,7 +80,7 @@ export const create = async (req, res) => {
     await cycle.save();
 
     // Log de auditoria
-    await AuditLog.logCreate('cycle', cycle._id, req.user._id, cycle.toObject(), req);
+    await AuditLog.logCreate(req.user._id, 'cycle', cycle._id, cycle.toObject(), req);
 
     res.status(201).json({
       success: true,
@@ -122,7 +122,7 @@ export const update = async (req, res) => {
     await cycle.save();
 
     // Log de auditoria
-    await AuditLog.logUpdate('cycle', id, req.user._id, oldData, cycle.toObject(), req);
+    await AuditLog.logUpdate(req.user._id, 'cycle', id, oldData, cycle.toObject(), req);
 
     res.json({
       success: true,
@@ -157,7 +157,7 @@ export const remove = async (req, res) => {
     await cycle.save();
 
     // Log de auditoria
-    await AuditLog.logDelete('cycle', id, req.user._id, cycle.toObject(), req);
+    await AuditLog.logDelete(req.user._id, 'cycle', id, cycle.toObject(), req);
 
     res.json({
       success: true,

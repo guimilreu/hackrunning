@@ -149,7 +149,7 @@ export const credit = async (req, res) => {
     );
 
     // Log de auditoria
-    await AuditLog.logCreate('hpoint', hpoint._id, req.user._id, {
+    await AuditLog.logCreate(req.user._id, 'hpoint', hpoint._id, {
       userId,
       points,
       description,
@@ -208,7 +208,7 @@ export const debit = async (req, res) => {
     );
 
     // Log de auditoria
-    await AuditLog.logCreate('hpoint', hpoint._id, req.user._id, {
+    await AuditLog.logCreate(req.user._id, 'hpoint', hpoint._id, {
       userId,
       points: -points,
       description,

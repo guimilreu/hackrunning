@@ -391,7 +391,7 @@ export const create = async (req, res) => {
     await company.save();
 
     // Log de auditoria
-    await AuditLog.logCreate('company', company._id, req.user._id, company.toObject(), req);
+    await AuditLog.logCreate(req.user._id, 'company', company._id, company.toObject(), req);
 
     res.status(201).json({
       success: true,
@@ -434,7 +434,7 @@ export const update = async (req, res) => {
     await company.save();
 
     // Log de auditoria
-    await AuditLog.logUpdate('company', id, req.user._id, oldData, company.toObject(), req);
+    await AuditLog.logUpdate(req.user._id, 'company', id, oldData, company.toObject(), req);
 
     res.json({
       success: true,
@@ -503,7 +503,7 @@ export const deactivate = async (req, res) => {
     );
 
     // Log de auditoria
-    await AuditLog.logDelete('company', id, req.user._id, company.toObject(), req);
+    await AuditLog.logDelete(req.user._id, 'company', id, company.toObject(), req);
 
     res.json({
       success: true,

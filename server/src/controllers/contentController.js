@@ -227,7 +227,7 @@ export const create = async (req, res) => {
     await newContent.save();
 
     // Log de auditoria
-    await AuditLog.logCreate('content', newContent._id, req.user._id, newContent.toObject(), req);
+    await AuditLog.logCreate(req.user._id, 'content', newContent._id, newContent.toObject(), req);
 
     res.status(201).json({
       success: true,
@@ -273,7 +273,7 @@ export const update = async (req, res) => {
     await content.save();
 
     // Log de auditoria
-    await AuditLog.logUpdate('content', id, req.user._id, oldData, content.toObject(), req);
+    await AuditLog.logUpdate(req.user._id, 'content', id, oldData, content.toObject(), req);
 
     res.json({
       success: true,
@@ -418,7 +418,7 @@ export const remove = async (req, res) => {
     await content.deleteOne();
 
     // Log de auditoria
-    await AuditLog.logDelete('content', id, req.user._id, content.toObject(), req);
+    await AuditLog.logDelete(req.user._id, 'content', id, content.toObject(), req);
 
     res.json({
       success: true,

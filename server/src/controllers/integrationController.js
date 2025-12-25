@@ -39,7 +39,7 @@ export const stravaCallback = async (req, res) => {
     // Trocar código por tokens
     const tokens = await stravaService.exchangeToken(code);
 
-    // Obter dados do atleta
+    // Obter dados do runner
     const athlete = await stravaService.getAthlete(tokens.access_token);
 
     // Atualizar usuário com dados do Strava
@@ -60,7 +60,7 @@ export const stravaCallback = async (req, res) => {
     await user.save();
 
     // Log de auditoria
-    await AuditLog.logCreate('strava_connect', user._id, user._id, {
+    await AuditLog.logCreate(user._id, 'strava_connect', user._id, {
       athleteId: athlete.id
     }, req);
 
@@ -107,7 +107,7 @@ export const disconnectStrava = async (req, res) => {
     await user.save();
 
     // Log de auditoria
-    await AuditLog.logDelete('strava_connect', user._id, user._id, {}, req);
+    await AuditLog.logDelete(user._id, 'strava_connect', user._id, {}, req);
 
     res.json({
       success: true,

@@ -48,7 +48,7 @@ export const BLOCK_SEQUENCE = ['BASE', 'BUILD', 'PEAK'];
  * @param {Object} params - Parâmetros para geração
  * @param {number} params.baseWeekMinutes - Volume base semanal em minutos
  * @param {number} params.daysPerWeek - Dias de treino por semana
- * @param {string} params.level - Nível do atleta (iniciante_A, iniciante_B, intermediario)
+ * @param {string} params.level - Nível do runner (iniciante_A, iniciante_B, intermediario)
  * @param {boolean} params.canDoIntensity - Se pode fazer treinos intensos
  * @param {boolean} params.canDoLongRun - Se pode fazer longão
  * @returns {Array} Array de semanas com configurações

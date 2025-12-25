@@ -92,7 +92,7 @@ export default function WorkoutDetailsPage() {
 
                       {workout.description && (
                           <div className="space-y-2">
-                              <h3 className="font-bold text-white">Relato do Atleta</h3>
+                              <h3 className="font-bold text-white">Relato do Runner</h3>
                               <p className="text-zinc-400 leading-relaxed">
                                   "{workout.description}"
                               </p>

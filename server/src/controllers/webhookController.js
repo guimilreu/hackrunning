@@ -382,7 +382,7 @@ async function handleSubscriptionPaymentReceived(payment, subscription, user) {
 
   // Log de auditoria
   try {
-    await AuditLog.logCreate('subscription_payment', subscription._id, null, {
+    await AuditLog.logCreate(user._id, 'subscription_payment', subscription._id, {
       subscriptionId: subscription._id,
       paymentId: payment.id,
       amount: payment.value,
@@ -642,7 +642,7 @@ async function handlePaymentReceived(payment, order, user, req) {
   }
 
   try {
-    await AuditLog.logCreate('payment_received', order._id, null, {
+    await AuditLog.logCreate(user._id, 'payment_received', order._id, {
       orderId: order._id,
       paymentId: payment.id,
       amount: payment.value,

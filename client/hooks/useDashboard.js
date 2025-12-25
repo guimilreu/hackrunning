@@ -175,3 +175,14 @@ export const useCommunityFeed = (limit = 10) => {
     initialPageParam: 1,
   });
 };
+
+export const useTopRunners = () => {
+  return useQuery({
+    queryKey: ['topRunners'],
+    queryFn: async () => {
+      const response = await api.get('/users/top-runners');
+      const data = response.data?.data || response.data;
+      return data?.runners || [];
+    },
+  });
+};

@@ -16,6 +16,7 @@ import { differenceInDays } from 'date-fns';
 import { useAuthStore } from '@/store/authStore';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const useChallenge = (id) => {
   return useQuery({
@@ -106,7 +107,7 @@ export default function ChallengeDetailsPage() {
     if (p.userId?.firstName) return `${p.userId.firstName} ${p.userId.lastName || ''}`.trim();
     // Fallback
     if (p.name) return p.name;
-    return 'Atleta';
+    return 'Runner';
   };
 
   const getParticipantPhoto = (p) => {
@@ -253,11 +254,14 @@ export default function ChallengeDetailsPage() {
                         {challenge.participants.slice(0, 10).map((participant, index) => { // Limitando a 10 para não ficar gigante
                             const name = getParticipantName(participant);
                             const photo = getParticipantPhoto(participant);
+                            const participantId = participant.userId?._id || participant.userId || participant._id;
+                            const isOwnProfile = participantId === user?._id;
                             
                             return (
-                                <div 
-                                    key={participant._id || index} 
-                                    className="flex items-center gap-3 p-3 rounded-xl bg-zinc-900/40 border border-white/5 hover:bg-zinc-800/40 transition-colors"
+                                <Link
+                                    key={participant._id || index}
+                                    href={isOwnProfile ? '/profile' : `/runner/${participantId}`}
+                                    className="flex items-center gap-3 p-3 rounded-xl bg-zinc-900/40 border border-white/5 hover:bg-zinc-800/40 transition-colors cursor-pointer"
                                 >
                                     <Avatar className="h-10 w-10 border border-white/10">
                                         <AvatarImage src={photo} />
@@ -266,9 +270,9 @@ export default function ChallengeDetailsPage() {
                                         </AvatarFallback>
                                     </Avatar>
                                     <div className="flex-1 min-w-0">
-                                        <p className="font-bold text-white text-sm truncate">{name}</p>
+                                        <p className="font-bold text-white text-sm truncate hover:text-primary transition-colors">{name}</p>
                                         <p className="text-xs text-zinc-500 flex items-center gap-1">
-                                            {participant.userId === user?._id ? (
+                                            {isOwnProfile ? (
                                                 <span className="text-primary">Você</span>
                                             ) : (
                                                 'Participante'
@@ -280,7 +284,7 @@ export default function ChallengeDetailsPage() {
                                             <Check className="h-3 w-3" />
                                         </div>
                                     )}
-                                </div>
+                                </Link>
                             );
                         })}
                         {challenge.participants.length > 10 && (

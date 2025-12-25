@@ -31,7 +31,7 @@ export const getDashboard = async (req, res) => {
       User.countDocuments({ createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } }),
       Workout.countDocuments(),
       Workout.countDocuments({ date: { $gte: startOfMonth } }),
-      Workout.countDocuments({ hpointsStatus: 'pending', 'photo.url': { $exists: true } }),
+      Workout.countDocuments({ 'hpoints.status': 'pending', 'photo.url': { $exists: true } }),
       Redemption.countDocuments({ status: 'pending' }),
       Event.countDocuments({ active: true, date: { $gte: now } }),
       Challenge.countDocuments({ active: true, endDate: { $gte: now } })
@@ -524,7 +524,7 @@ export const globalSearch = async (req, res) => {
 export const getValidationQueue = async (req, res) => {
   try {
     const workouts = await Workout.find({
-      hpointsStatus: 'pending',
+      'hpoints.status': 'pending',
       'photo.url': { $exists: true }
     })
       .populate('user', 'firstName lastName email photo')
@@ -560,7 +560,7 @@ export const approveValidation = async (req, res) => {
       });
     }
 
-    if (workout.hpointsStatus === 'approved') {
+    if (workout.hpoints.status === 'approved') {
       return res.status(400).json({
         success: false,
         message: 'Treino já foi aprovado'
@@ -586,11 +586,11 @@ export const approveValidation = async (req, res) => {
     }
 
     // Atualizar treino
-    workout.hpointsStatus = 'approved';
-    workout.hpointsAwarded = totalPoints;
+    workout.hpoints.status = 'approved';
+    workout.hpoints.points = totalPoints;
+    workout.hpoints.validatedBy = req.user._id;
+    workout.hpoints.validatedAt = new Date();
     workout.photo.validated = true;
-    workout.photo.validatedAt = new Date();
-    workout.photo.validatedBy = req.user._id;
     await workout.save();
 
     // Creditar pontos
@@ -609,9 +609,9 @@ export const approveValidation = async (req, res) => {
     await notificationService.notifyWorkoutApproved(workout.user._id, totalPoints);
 
     // Log de auditoria
-    await AuditLog.logUpdate('workout', id, req.user._id, 
-      { hpointsStatus: 'pending' }, 
-      { hpointsStatus: 'approved', hpointsAwarded: totalPoints }, 
+    await AuditLog.logUpdate(req.user._id, 'workout', id, 
+      { 'hpoints.status': 'pending' }, 
+      { 'hpoints.status': 'approved', 'hpoints.points': totalPoints }, 
       req
     );
 
@@ -655,18 +655,18 @@ export const rejectValidation = async (req, res) => {
       });
     }
 
-    workout.hpointsStatus = 'rejected';
+    workout.hpoints.status = 'rejected';
+    workout.hpoints.rejectionReason = reason;
     workout.photo.validated = false;
-    workout.photo.rejectionReason = reason;
     await workout.save();
 
     // Notificar usuário
     await notificationService.notifyWorkoutRejected(workout.user._id, reason);
 
     // Log de auditoria
-    await AuditLog.logUpdate('workout', id, req.user._id,
-      { hpointsStatus: 'pending' },
-      { hpointsStatus: 'rejected', reason },
+    await AuditLog.logUpdate(req.user._id, 'workout', id,
+      { 'hpoints.status': 'pending' },
+      { 'hpoints.status': 'rejected', 'hpoints.rejectionReason': reason },
       req
     );
 

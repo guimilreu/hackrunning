@@ -39,7 +39,7 @@ cp .env.example .env  # Configure as variáveis
 npm run dev
 ```
 
-API disponível em: http://localhost:5000
+API disponível em: http://localhost:4000
 
 ## 📚 Documentação
 

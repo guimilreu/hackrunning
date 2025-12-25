@@ -15,7 +15,7 @@ const nextConfig = {
     optimizePackageImports: ['recharts', 'mapbox-gl'],
   },
   async rewrites() {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
     return [
       {
         source: '/api/:path*',

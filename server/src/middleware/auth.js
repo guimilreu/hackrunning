@@ -22,38 +22,24 @@ passport.use(new LocalStrategy(
     try {
       // Incluir password no select pois ele tem select: false por padrão
       const emailLower = email.toLowerCase();
-      console.log('[AUTH DEBUG] Tentativa de login:', { email: emailLower, passwordLength: password?.length });
       
       const user = await User.findOne({ email: emailLower }).select('+password');
       
       if (!user) {
-        console.log('[AUTH DEBUG] Usuário não encontrado para email:', emailLower);
         return done(null, false, { message: 'Email ou senha inválidos' });
       }
 
-      console.log('[AUTH DEBUG] Usuário encontrado:', { 
-        id: user._id, 
-        email: user.email, 
-        active: user.active,
-        passwordHashLength: user.password?.length,
-        passwordHashPreview: user.password?.substring(0, 20) + '...'
-      });
-
       if (!user.active) {
-        console.log('[AUTH DEBUG] Usuário inativo');
         return done(null, false, { message: 'Conta desativada' });
       }
 
       if (!user.password) {
-        console.log('[AUTH DEBUG] Senha não encontrada no usuário');
         return done(null, false, { message: 'Email ou senha inválidos' });
       }
 
       const isValid = await user.comparePassword(password);
-      console.log('[AUTH DEBUG] Comparação de senha:', { isValid });
       
       if (!isValid) {
-        console.log('[AUTH DEBUG] Senha inválida');
         return done(null, false, { message: 'Email ou senha inválidos' });
       }
 
@@ -61,11 +47,8 @@ passport.use(new LocalStrategy(
       user.lastAccess = new Date();
       await user.save();
 
-      console.log('[AUTH DEBUG] Login bem-sucedido');
       return done(null, user);
     } catch (error) {
-      console.error('[AUTH DEBUG] Erro na estratégia local:', error);
-      console.error('[AUTH DEBUG] Stack:', error.stack);
       return done(error);
     }
   }
@@ -217,7 +200,9 @@ export const authorize = (...roles) => {
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({ 
         success: false, 
-        message: 'Acesso negado. Permissão insuficiente' 
+        message: 'Acesso negado. Permissão insuficiente',
+        userRole: req.user.role,
+        requiredRoles: roles
       });
     }
 
@@ -228,7 +213,9 @@ export const authorize = (...roles) => {
 /**
  * Middleware para verificar se é admin
  */
-export const requireAdmin = authorize('operational_admin', 'content_admin', 'company_admin', 'media_moderator', 'super_admin');
+export const requireAdmin = (req, res, next) => {
+  return authorize('operational_admin', 'content_admin', 'company_admin', 'media_moderator', 'super_admin')(req, res, next);
+};
 
 /**
  * Middleware para verificar se é super admin

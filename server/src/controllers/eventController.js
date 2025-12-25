@@ -2,6 +2,8 @@ import { Event, User, AuditLog } from '../models/index.js';
 import { imageService } from '../services/imageService.js';
 import { notificationService } from '../services/notificationService.js';
 import { qrcodeService } from '../services/qrcodeService.js';
+import { mapboxService } from '../services/index.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Listar eventos
@@ -51,8 +53,8 @@ export const list = async (req, res) => {
 export const getById = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id)
-      .populate('participants', 'firstName lastName profilePhoto')
-      .populate('confirmed', 'firstName lastName profilePhoto');
+      .populate('participants', 'name photo firstName lastName')
+      .populate('confirmed', 'name photo firstName lastName');
 
     if (!event) {
       return res.status(404).json({
@@ -358,13 +360,27 @@ export const create = async (req, res) => {
       requirements
     } = req.body;
 
+    // Faz geocoding do endereço para obter coordenadas
+    let locationWithCoordinates = { ...location };
+    if (location && location.address && location.city && location.state) {
+      const coordinates = await mapboxService.geocodeAddress(
+        location.address,
+        location.city,
+        location.state
+      );
+      
+      if (coordinates) {
+        locationWithCoordinates.coordinates = coordinates;
+      }
+    }
+
     const event = new Event({
       type,
       name,
       description,
       date,
       time,
-      location,
+      location: locationWithCoordinates,
       maxParticipants,
       requirements,
       active: true
@@ -391,7 +407,7 @@ export const create = async (req, res) => {
     });
 
     // Log de auditoria
-    await AuditLog.logCreate('event', event._id, req.user._id, event.toObject(), req);
+    await AuditLog.logCreate(req.user._id, 'event', event._id, event.toObject(), req);
 
     res.status(201).json({
       success: true,
@@ -434,10 +450,26 @@ export const update = async (req, res) => {
       }
     });
 
+    // Se a localização foi atualizada e não tem coordenadas, faz geocoding
+    if (req.body.location && event.location) {
+      const location = event.location;
+      if (location.address && location.city && location.state && !location.coordinates) {
+        const coordinates = await mapboxService.geocodeAddress(
+          location.address,
+          location.city,
+          location.state
+        );
+        
+        if (coordinates) {
+          event.location.coordinates = coordinates;
+        }
+      }
+    }
+
     await event.save();
 
     // Log de auditoria
-    await AuditLog.logUpdate('event', id, req.user._id, oldData, event.toObject(), req);
+    await AuditLog.logUpdate(req.user._id, 'event', id, oldData, event.toObject(), req);
 
     res.json({
       success: true,
@@ -471,7 +503,7 @@ export const remove = async (req, res) => {
     await event.save();
 
     // Log de auditoria
-    await AuditLog.logDelete('event', id, req.user._id, event.toObject(), req);
+    await AuditLog.logDelete(req.user._id, 'event', id, event.toObject(), req);
 
     res.json({
       success: true,
@@ -551,6 +583,135 @@ export const getParticipants = async (req, res) => {
   }
 };
 
+/**
+ * Geocoding de endereço (admin)
+ * Converte endereço em coordenadas para validação antes de salvar
+ */
+export const geocode = async (req, res) => {
+  console.log('[GEOCODE] Controller chamado');
+  console.log('[GEOCODE] User:', req.user ? { id: req.user._id, role: req.user.role } : 'não autenticado');
+  console.log('[GEOCODE] Query params:', req.query);
+  
+  try {
+    // Log dos parâmetros recebidos para debug
+    logger.info('Geocode request received', { 
+      query: req.query,
+      rawQuery: req.url 
+    });
+    
+    // Pega os parâmetros da query string
+    let address = req.query.address;
+    let city = req.query.city;
+    let state = req.query.state;
+
+    // Verifica se os parâmetros existem
+    if (!address && !city && !state) {
+      return res.status(400).json({
+        success: false,
+        message: 'Parâmetros não fornecidos. Forneça: address, city, state',
+        received: req.query
+      });
+    }
+
+    // Decodifica os parâmetros (Express já decodifica, mas garantimos)
+    if (typeof address === 'string') {
+      try {
+        address = decodeURIComponent(address).trim();
+      } catch (e) {
+        address = address.trim();
+      }
+    } else {
+      address = '';
+    }
+
+    if (typeof city === 'string') {
+      try {
+        city = decodeURIComponent(city).trim();
+      } catch (e) {
+        city = city.trim();
+      }
+    } else {
+      city = '';
+    }
+
+    if (typeof state === 'string') {
+      try {
+        state = decodeURIComponent(state).trim().toUpperCase();
+      } catch (e) {
+        state = state.trim().toUpperCase();
+      }
+    } else {
+      state = '';
+    }
+
+    // Validação mais rigorosa
+    if (!address || address.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Endereço é obrigatório',
+        received: { address, city, state },
+        rawQuery: req.query
+      });
+    }
+
+    if (!city || city.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cidade é obrigatória',
+        received: { address, city, state },
+        rawQuery: req.query
+      });
+    }
+
+    if (!state || state.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Estado é obrigatório',
+        received: { address, city, state },
+        rawQuery: req.query
+      });
+    }
+
+    if (state.length > 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'Estado deve ter 2 caracteres (ex: SP, RJ). Recebido: ' + state,
+        received: { address, city, state },
+        rawQuery: req.query
+      });
+    }
+
+    const result = await mapboxService.geocodeAddress(address, city, state);
+
+    if (!result || !result.lat || !result.lng) {
+      return res.status(404).json({
+        success: false,
+        message: 'Localização não encontrada. Verifique o endereço informado e tente ser mais específico (inclua número, bairro, etc).'
+      });
+    }
+
+    // Extrai apenas coordenadas para compatibilidade
+    const coordinates = { lat: result.lat, lng: result.lng };
+
+    res.json({
+      success: true,
+      data: {
+        coordinates,
+        placeName: result.placeName || `${address}, ${city}, ${state}`,
+        accuracy: result.accuracy,
+        relevance: result.relevance,
+        address: `${address}, ${city}, ${state}`
+      }
+    });
+  } catch (error) {
+    console.error('Erro ao fazer geocoding:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao buscar localização'
+    });
+  }
+};
+
 export default {
   list,
   getById,
@@ -564,5 +725,6 @@ export default {
   update,
   remove,
   confirmByQR,
-  getParticipants
+  getParticipants,
+  geocode
 };

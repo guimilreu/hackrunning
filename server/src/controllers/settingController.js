@@ -156,13 +156,13 @@ export const upsert = async (req, res) => {
 
     // Log de auditoria
     if (isUpdate) {
-      await AuditLog.logUpdate('setting', setting._id, req.user._id,
+      await AuditLog.logUpdate(req.user._id, 'setting', setting._id,
         { value: existingSetting.value },
         { value },
         req
       );
     } else {
-      await AuditLog.logCreate('setting', setting._id, req.user._id, setting.toObject(), req);
+      await AuditLog.logCreate(req.user._id, 'setting', setting._id, setting.toObject(), req);
     }
 
     res.json({
@@ -229,7 +229,7 @@ export const remove = async (req, res) => {
     await setting.deleteOne();
 
     // Log de auditoria
-    await AuditLog.logDelete('setting', setting._id, req.user._id, setting.toObject(), req);
+    await AuditLog.logDelete(req.user._id, 'setting', setting._id, setting.toObject(), req);
 
     res.json({
       success: true,

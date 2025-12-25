@@ -122,7 +122,7 @@ export const create = async (req, res) => {
     await product.save();
 
     // Log de auditoria
-    await AuditLog.logCreate('product', product._id, req.user._id, product.toObject(), req);
+    await AuditLog.logCreate(req.user._id, 'product', product._id, product.toObject(), req);
 
     res.status(201).json({
       success: true,
@@ -168,7 +168,7 @@ export const update = async (req, res) => {
     await product.save();
 
     // Log de auditoria
-    await AuditLog.logUpdate('product', id, req.user._id, oldData, product.toObject(), req);
+    await AuditLog.logUpdate(req.user._id, 'product', id, oldData, product.toObject(), req);
 
     res.json({
       success: true,
@@ -246,7 +246,7 @@ export const remove = async (req, res) => {
     await product.save();
 
     // Log de auditoria
-    await AuditLog.logDelete('product', id, req.user._id, product.toObject(), req);
+    await AuditLog.logDelete(req.user._id, 'product', id, product.toObject(), req);
 
     res.json({
       success: true,
@@ -294,7 +294,7 @@ export const updateStock = async (req, res) => {
     await product.save();
 
     // Log de auditoria
-    await AuditLog.logUpdate('product', id, req.user._id,
+    await AuditLog.logUpdate(req.user._id, 'product', id,
       { stock: oldStock },
       { stock: product.stock, operation, quantity },
       req

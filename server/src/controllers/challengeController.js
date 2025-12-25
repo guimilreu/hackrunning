@@ -328,7 +328,7 @@ export const create = async (req, res) => {
     });
 
     // Log de auditoria
-    await AuditLog.logCreate('challenge', challenge._id, req.user._id, challenge.toObject(), req);
+    await AuditLog.logCreate(req.user._id, 'challenge', challenge._id, challenge.toObject(), req);
 
     res.status(201).json({
       success: true,
@@ -374,7 +374,7 @@ export const update = async (req, res) => {
     await challenge.save();
 
     // Log de auditoria
-    await AuditLog.logUpdate('challenge', id, req.user._id, oldData, challenge.toObject(), req);
+    await AuditLog.logUpdate(req.user._id, 'challenge', id, oldData, challenge.toObject(), req);
 
     res.json({
       success: true,
@@ -408,7 +408,7 @@ export const remove = async (req, res) => {
     await challenge.save();
 
     // Log de auditoria
-    await AuditLog.logDelete('challenge', id, req.user._id, challenge.toObject(), req);
+    await AuditLog.logDelete(req.user._id, 'challenge', id, challenge.toObject(), req);
 
     res.json({
       success: true,

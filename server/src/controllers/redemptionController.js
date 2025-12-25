@@ -357,7 +357,7 @@ export const approve = async (req, res) => {
     });
 
     // Log de auditoria
-    await AuditLog.logUpdate('redemption', id, req.user._id,
+    await AuditLog.logUpdate(req.user._id, 'redemption', id,
       { status: 'pending' },
       { status: 'approved' },
       req
@@ -511,7 +511,7 @@ export const adminCancel = async (req, res) => {
     await redemption.cancel(reason);
 
     // Log de auditoria
-    await AuditLog.logUpdate('redemption', id, req.user._id,
+    await AuditLog.logUpdate(req.user._id, 'redemption', id,
       { status: redemption.status },
       { status: 'cancelled', reason },
       req

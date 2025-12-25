@@ -16,6 +16,7 @@ import { useUpdateWorkout, useToggleLike, useAddComment, useDeleteComment, useSh
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { toast } from 'sonner';
+import Link from 'next/link';
 
 export function WorkoutDetailsDialog({ workout, open, onOpenChange, defaultUser }) {
   const { user } = useAuthStore();
@@ -157,7 +158,7 @@ export function WorkoutDetailsDialog({ workout, open, onOpenChange, defaultUser 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl bg-zinc-950 border-white/10 p-0 overflow-hidden gap-0">
+      <DialogContent className="max-w-2xl bg-zinc-950 border-white/10 p-0 gap-0 max-h-[90vh] overflow-y-auto">
         
         {/* Header Image / Map Placeholder */}
         <div className="relative h-48 sm:h-64 bg-zinc-900 w-full">
@@ -202,12 +203,19 @@ export function WorkoutDetailsDialog({ workout, open, onOpenChange, defaultUser 
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h3 className="font-bold text-white text-lg leading-none mb-1">
-                  {displayUser?.name || user?.name || 'Atleta'}
-                  {isOwner && (
+                {isOwner ? (
+                  <h3 className="font-bold text-white text-lg leading-none mb-1">
+                    {displayUser?.name || user?.name || 'Runner'}
                     <span className="text-zinc-500 text-xs font-normal ml-2">(Você)</span>
-                  )}
-                </h3>
+                  </h3>
+                ) : (
+                  <Link 
+                    href={`/runner/${currentWorkout.userId?._id || currentWorkout.userId || currentWorkout.user?._id}`}
+                    className="font-bold text-white text-lg leading-none mb-1 hover:text-primary transition-colors block"
+                  >
+                    {displayUser?.name || 'Runner'}
+                  </Link>
+                )}
                 <div className="flex items-center gap-2 text-zinc-500 text-xs font-bold uppercase tracking-wide">
                   <Calendar className="w-3 h-3" />
                   {safeFormatDate(currentWorkout.date, "dd 'de' MMMM 'às' HH:mm")}
@@ -398,9 +406,18 @@ export function WorkoutDetailsDialog({ workout, open, onOpenChange, defaultUser 
                                </Avatar>
                                <div className="flex-1 min-w-0">
                                  <div className="flex items-center justify-between gap-2">
-                                   <p className="text-xs font-bold text-white">
-                                     {comment.userId?.name || 'Usuário'}
-                                   </p>
+                                   {isCommentAuthor ? (
+                                     <p className="text-xs font-bold text-white">
+                                       {comment.userId?.name || 'Usuário'}
+                                     </p>
+                                   ) : (
+                                     <Link 
+                                       href={`/runner/${comment.userId?._id || comment.userId}`}
+                                       className="text-xs font-bold text-white hover:text-primary transition-colors"
+                                     >
+                                       {comment.userId?.name || 'Usuário'}
+                                     </Link>
+                                   )}
                                    <div className="flex items-center gap-2">
                                      <span className="text-[10px] text-zinc-500">
                                        {safeFormatDate(comment.createdAt, "dd/MM 'às' HH:mm")}

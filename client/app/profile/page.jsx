@@ -8,8 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { User, Mail, Phone, MapPin, Edit, Save, Camera, Crown, Settings, Activity, History, Trophy, Upload } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
+import { User, Mail, Phone, MapPin, Edit, Save, Camera, Crown, Settings, Activity, History, Trophy, Upload, Loader2 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
@@ -56,7 +56,7 @@ const useUpdateProfile = () => {
   
   return useMutation({
     mutationFn: async (data) => {
-      const response = await api.put('/users/me', data);
+      const response = await api.put('/users/profile', data);
       return response.data;
     },
     onSuccess: () => {
@@ -77,7 +77,7 @@ const useUploadProfilePhoto = () => {
       const formData = new FormData();
       formData.append('photo', file);
       
-      const response = await api.post('/users/me/photo', formData, {
+      const response = await api.post('/users/profile-photo', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -124,7 +124,7 @@ const isPremiumPlan = (planType) => {
 
 function EditProfileDialog({ user, open, onOpenChange }) {
   const { mutate: updateProfile, isPending } = useUpdateProfile();
-  const { register, handleSubmit, reset } = useForm({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm({
     defaultValues: {
       name: '',
       email: '',
@@ -153,36 +153,114 @@ function EditProfileDialog({ user, open, onOpenChange }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-zinc-950 border-white/10 sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-white">Editar Perfil</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <div className="p-2 rounded-xl bg-primary/20">
+              <Edit className="h-5 w-5 text-primary" />
+            </div>
+            Editar Perfil
+          </DialogTitle>
+          <DialogDescription>
+            Atualize suas informações pessoais. Essas informações serão visíveis na sua conta.
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-4">
-          <div className="grid gap-4">
+        
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 mt-2">
+          <div className="grid gap-5">
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-zinc-400">Nome Completo</Label>
-              <Input id="name" {...register('name')} className="bg-zinc-900/50 border-white/10 text-white" />
+              <Label htmlFor="name" className="flex items-center gap-2 text-zinc-300">
+                <User className="h-4 w-4 text-zinc-500" />
+                Nome Completo
+              </Label>
+              <Input 
+                id="name" 
+                {...register('name', { required: 'Nome é obrigatório' })} 
+                className={`bg-zinc-900/50 border-white/10 text-white focus:border-primary/50 focus:ring-primary/20 h-11 ${errors.name ? 'border-red-500/50' : ''}`}
+                placeholder="Seu nome completo"
+              />
+              {errors.name && (
+                <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>
+              )}
             </div>
+            
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-zinc-400">Email</Label>
-              <Input id="email" type="email" {...register('email')} className="bg-zinc-900/50 border-white/10 text-white" />
+              <Label htmlFor="email" className="flex items-center gap-2 text-zinc-300">
+                <Mail className="h-4 w-4 text-zinc-500" />
+                Email
+              </Label>
+              <Input 
+                id="email" 
+                type="email" 
+                {...register('email', { 
+                  required: 'Email é obrigatório',
+                  pattern: {
+                    value: /^\S+@\S+\.\S+$/,
+                    message: 'Email inválido'
+                  }
+                })} 
+                className={`bg-zinc-900/50 border-white/10 text-white focus:border-primary/50 focus:ring-primary/20 h-11 ${errors.email ? 'border-red-500/50' : ''}`}
+                placeholder="seu@email.com"
+              />
+              {errors.email && (
+                <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>
+              )}
             </div>
+            
             <div className="space-y-2">
-              <Label htmlFor="phone" className="text-zinc-400">Telefone</Label>
-              <Input id="phone" {...register('phone')} className="bg-zinc-900/50 border-white/10 text-white" />
+              <Label htmlFor="phone" className="flex items-center gap-2 text-zinc-300">
+                <Phone className="h-4 w-4 text-zinc-500" />
+                Telefone
+              </Label>
+              <Input 
+                id="phone" 
+                {...register('phone')} 
+                className="bg-zinc-900/50 border-white/10 text-white focus:border-primary/50 focus:ring-primary/20 h-11" 
+                placeholder="(00) 00000-0000"
+              />
             </div>
+            
             <div className="space-y-2">
-              <Label htmlFor="city" className="text-zinc-400">Cidade</Label>
-              <Input id="city" {...register('city')} className="bg-zinc-900/50 border-white/10 text-white" />
+              <Label htmlFor="city" className="flex items-center gap-2 text-zinc-300">
+                <MapPin className="h-4 w-4 text-zinc-500" />
+                Cidade
+              </Label>
+              <Input 
+                id="city" 
+                {...register('city')} 
+                className="bg-zinc-900/50 border-white/10 text-white focus:border-primary/50 focus:ring-primary/20 h-11" 
+                placeholder="Sua cidade"
+              />
             </div>
           </div>
-          <div className="flex justify-end gap-3">
-             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} className="hover:bg-white/10 text-white">
-                Cancelar
-             </Button>
-             <Button type="submit" disabled={isPending} className="bg-primary text-black hover:bg-primary/90 font-bold">
-                {isPending ? 'Salvando...' : 'Salvar Alterações'}
-             </Button>
+          
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-white/5">
+            <Button 
+              type="button" 
+              variant="ghost" 
+              onClick={() => onOpenChange(false)} 
+              disabled={isPending}
+              className="text-zinc-400 hover:text-white hover:bg-white/10"
+            >
+              Cancelar
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={isPending} 
+              className="bg-primary text-black hover:bg-primary/90 font-bold min-w-[140px] h-11"
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Salvar Alterações
+                </>
+              )}
+            </Button>
           </div>
         </form>
       </DialogContent>

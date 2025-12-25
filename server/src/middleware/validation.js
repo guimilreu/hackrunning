@@ -567,7 +567,13 @@ export const paginationSchema = Joi.object({
   page: Joi.number().min(1).default(1),
   limit: Joi.number().min(1).max(100).default(20),
   sort: Joi.string().allow(''),
-  order: Joi.string().valid('asc', 'desc').default('desc')
+  order: Joi.string().valid('asc', 'desc').default('desc'),
+  // Parâmetros adicionais para filtros de workouts
+  status: Joi.string().allow(''),
+  type: Joi.string().allow(''),
+  workoutType: Joi.string().allow(''),
+  startDate: Joi.string().isoDate().allow(''),
+  endDate: Joi.string().isoDate().allow('')
 });
 
 // ObjectId

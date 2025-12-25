@@ -105,7 +105,12 @@ export default function CommunityPage() {
                                         </AvatarFallback>
                                     </Avatar>
                                     <div>
-                                        <p className="font-bold text-white text-sm">{activity.user?.name || 'Atleta'}</p>
+                                        <Link 
+                                            href={`/runner/${activity.userId?._id || activity.userId || activity.user?._id}`}
+                                            className="font-bold text-white text-sm hover:text-primary cursor-pointer transition-colors block"
+                                        >
+                                            {activity.user?.name || 'Runner'}
+                                        </Link>
                                         <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wide">
                                             {activity.date ? safeFormatDate(activity.date, "dd 'de' MMM • HH:mm") : ''}
                                         </p>

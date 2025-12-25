@@ -595,7 +595,7 @@ export const updateStatus = async (req, res) => {
     }
 
     // Log de auditoria
-    await AuditLog.logUpdate('order', id, req.user._id,
+    await AuditLog.logUpdate(req.user._id, 'order', id,
       { status: oldStatus },
       { status, trackingCode, notes },
       req

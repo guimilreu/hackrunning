@@ -223,7 +223,7 @@ export const getActivity = async (accessToken, activityId) => {
 };
 
 /**
- * Buscar informações do atleta
+ * Buscar informações do runner
  */
 export const getAthlete = async (accessToken) => {
   try {
@@ -236,7 +236,7 @@ export const getAthlete = async (accessToken) => {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || 'Erro ao buscar atleta');
+      throw new Error(data.message || 'Erro ao buscar runner');
     }
 
     return data;

@@ -32,6 +32,17 @@ router.get('/',
 router.get('/my', authenticate, requireOnboarding, eventController.myEvents);
 
 /**
+ * @route GET /api/events/geocode
+ * @desc Buscar coordenadas de um endereço (geocoding)
+ * @access Admin
+ */
+router.get('/geocode',
+  authenticate,
+  requireAdmin,
+  eventController.geocode
+);
+
+/**
  * @route GET /api/events/:id
  * @desc Obter evento por ID
  * @access Private

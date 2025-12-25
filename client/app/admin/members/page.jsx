@@ -58,7 +58,7 @@ export default function AdminMembersPage() {
 					<h1 className="text-4xl font-bold tracking-tighter text-white">
 						Gestão de <span className="text-primary">Membros</span>
 					</h1>
-					<p className="text-zinc-400 text-lg">Administre os atletas e usuários da plataforma</p>
+					<p className="text-zinc-400 text-lg">Administre os runners e usuários da plataforma</p>
 				</div>
 				<div className="flex gap-3 w-full md:w-auto">
 					<Button className="bg-white/5 text-white hover:bg-white/10 border border-white/10">

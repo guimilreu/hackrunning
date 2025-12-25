@@ -25,7 +25,8 @@ export const uploadFile = async (buffer, key, contentType, options = {}) => {
       Key: key,
       Body: buffer,
       ContentType: contentType,
-      ACL: options.private ? 'private' : 'public-read',
+      // ACL removido - bucket configurado com ACLs desabilitadas
+      // Controle de acesso público é feito via políticas de bucket
       CacheControl: options.cacheControl || 'max-age=31536000',
       ...options.metadata && { Metadata: options.metadata }
     });

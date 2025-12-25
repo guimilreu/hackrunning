@@ -30,25 +30,69 @@ export const getProfile = async (req, res) => {
 export const updateProfile = async (req, res) => {
   try {
     const allowedFields = [
-      'firstName', 'lastName', 'phone', 'birthDate', 
-      'gender', 'shirtSize', 'preferences'
+      'name', 'email', 'phone', 'birthDate', 
+      'gender', 'shirtSize', 'preferences', 'city'
     ];
 
     const updates = {};
+    const addressUpdates = {};
+    
+    // Processar campos diretos
     allowedFields.forEach(field => {
       if (req.body[field] !== undefined) {
-        updates[field] = req.body[field];
+        if (field === 'city') {
+          // Mapear city para address.city
+          addressUpdates['address.city'] = req.body[field];
+        } else {
+          updates[field] = req.body[field];
+        }
       }
     });
 
+    // Verificar se o email já está em uso por outro usuário
+    if (updates.email) {
+      const existingUser = await User.findOne({ 
+        email: updates.email.toLowerCase(),
+        _id: { $ne: req.user._id }
+      });
+      
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: 'Este email já está em uso por outro usuário'
+        });
+      }
+      
+      // Normalizar email para lowercase
+      updates.email = updates.email.toLowerCase().trim();
+    }
+
+    // Combinar atualizações
+    const finalUpdates = { ...updates, ...addressUpdates };
+
+    // Se não houver atualizações, retornar erro
+    if (Object.keys(finalUpdates).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nenhum campo válido para atualizar'
+      });
+    }
+
     const user = await User.findByIdAndUpdate(
       req.user._id,
-      { $set: updates },
+      { $set: finalUpdates },
       { new: true, runValidators: true }
     ).select('-password -security');
 
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuário não encontrado'
+      });
+    }
+
     // Log de auditoria
-    await AuditLog.logUpdate('user', req.user._id, req.user._id, {}, updates, req);
+    await AuditLog.logUpdate(req.user._id, 'user', req.user._id, {}, finalUpdates, req);
 
     res.json({
       success: true,
@@ -56,9 +100,32 @@ export const updateProfile = async (req, res) => {
       data: { user: user.toSafeObject() }
     });
   } catch (error) {
-    res.status(500).json({
+    console.error('Erro ao atualizar perfil:', error);
+    
+    // Retornar mensagem de erro mais específica
+    let errorMessage = 'Erro ao atualizar perfil';
+    let statusCode = 500;
+    
+    if (error.name === 'ValidationError') {
+      errorMessage = Object.values(error.errors).map(e => e.message).join(', ');
+      statusCode = 400;
+    } else if (error.code === 11000) {
+      // Duplicação de índice único (email ou cpf)
+      if (error.keyPattern?.email) {
+        errorMessage = 'Este email já está em uso';
+      } else if (error.keyPattern?.cpf) {
+        errorMessage = 'Este CPF já está em uso';
+      } else {
+        errorMessage = 'Dados duplicados. Verifique os campos únicos';
+      }
+      statusCode = 400;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    res.status(statusCode).json({
       success: false,
-      message: 'Erro ao atualizar perfil'
+      message: errorMessage
     });
   }
 };
@@ -148,7 +215,7 @@ export const getDashboard = async (req, res) => {
       Workout.find({ userId: userId })
         .sort({ date: -1 })
         .limit(5)
-        .select('date distance time workoutType hpointsStatus'),
+        .select('date distance time workoutType hpoints.status'),
       hpointService.getBalance(userId),
       hpointService.getExpiringPoints(userId, 30),
       Redemption.find({ user: userId, status: 'pending' }).limit(3)
@@ -370,7 +437,7 @@ export const updateUser = async (req, res) => {
     ).select('-password -security');
 
     // Log de auditoria
-    await AuditLog.logUpdate('user', id, req.user._id, oldUser.toObject(), filteredUpdates, req);
+    await AuditLog.logUpdate(req.user._id, 'user', id, oldUser.toObject(), filteredUpdates, req);
 
     res.json({
       success: true,
@@ -406,7 +473,7 @@ export const deactivateUser = async (req, res) => {
     }
 
     // Log de auditoria
-    await AuditLog.logUpdate('user', id, req.user._id, { active: true }, { active: false }, req);
+    await AuditLog.logUpdate(req.user._id, 'user', id, { active: true }, { active: false }, req);
 
     res.json({
       success: true,
@@ -468,6 +535,231 @@ function getWeeklyProgress(workouts, startDate) {
   }));
 }
 
+/**
+ * Obter perfil público de um usuário
+ */
+export const getPublicProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+      .populate('currentTrainingPlan', 'objective level startDate endDate adherence workouts')
+      .select('-password -security -email -phone -address.street -address.number -address.complement -address.neighborhood -address.zipCode');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuário não encontrado'
+      });
+    }
+
+    // Retornar apenas dados públicos
+    const safeUser = user.toSafeObject();
+    
+    // Garantir que apenas city e state do endereço sejam retornados
+    if (safeUser.address) {
+      safeUser.address = {
+        city: safeUser.address.city || '',
+        state: safeUser.address.state || ''
+      };
+    }
+    
+    res.json({
+      success: true,
+      data: { user: safeUser }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao obter perfil'
+    });
+  }
+};
+
+/**
+ * Obter estatísticas públicas de um usuário
+ */
+export const getPublicStats = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { period = 'all' } = req.query;
+
+    // Verificar se o usuário existe
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuário não encontrado'
+      });
+    }
+
+    let startDate = new Date();
+    switch (period) {
+      case 'week':
+        startDate.setDate(startDate.getDate() - 7);
+        break;
+      case 'month':
+        startDate.setMonth(startDate.getMonth() - 1);
+        break;
+      case 'year':
+        startDate.setFullYear(startDate.getFullYear() - 1);
+        break;
+      case 'all':
+        startDate = new Date(0);
+        break;
+    }
+
+    const workouts = await Workout.find({
+      userId: userId,
+      date: { $gte: startDate }
+    });
+
+    const stats = {
+      period,
+      totalWorkouts: workouts.length,
+      totalDistance: Math.round(workouts.reduce((sum, w) => sum + (w.distance || 0), 0) * 10) / 10,
+      totalTime: workouts.reduce((sum, w) => sum + (w.time || 0), 0),
+      averageDistance: workouts.length > 0 
+        ? Math.round((workouts.reduce((sum, w) => sum + (w.distance || 0), 0) / workouts.length) * 10) / 10 
+        : 0,
+      averagePace: calculateAveragePace(workouts),
+      workoutsByType: groupWorkoutsByType(workouts),
+      weeklyProgress: getWeeklyProgress(workouts, startDate)
+    };
+
+    res.json({
+      success: true,
+      data: { stats }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao obter estatísticas'
+    });
+  }
+};
+
+/**
+ * Obter atividades públicas de um usuário
+ */
+export const getPublicWorkouts = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { sort = '-date', limit = 50 } = req.query;
+
+    // Verificar se o usuário existe
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuário não encontrado'
+      });
+    }
+
+    const workouts = await Workout.find({ userId: userId })
+      .populate('userId', 'name photo')
+      .sort(sort)
+      .limit(parseInt(limit));
+
+    res.json({
+      success: true,
+      data: { workouts }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao obter atividades'
+    });
+  }
+};
+
+/**
+ * Obter top 10 corredores da semana (domingo a sábado)
+ */
+export const getTopRunners = async (req, res) => {
+  try {
+    // Calcular início da semana (domingo) e fim (sábado)
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0 = domingo, 6 = sábado
+    
+    // Calcular domingo da semana atual (meia-noite local)
+    const sunday = new Date(now);
+    sunday.setDate(now.getDate() - dayOfWeek);
+    sunday.setHours(0, 0, 0, 0);
+    
+    // Calcular sábado da semana atual (23:59:59 local)
+    const saturday = new Date(sunday);
+    saturday.setDate(sunday.getDate() + 6);
+    saturday.setHours(23, 59, 59, 999);
+
+    // Agregar treinos da semana agrupados por usuário
+    // Incluindo treinos aprovados e pendentes (não rejeitados)
+    const topRunners = await Workout.aggregate([
+      {
+        $match: {
+          date: { $gte: sunday, $lte: saturday },
+          $or: [
+            { 'hpoints.status': 'approved' },
+            { 'hpoints.status': 'pending' },
+            { 'hpoints.status': { $exists: false } }
+          ]
+        }
+      },
+      {
+        $group: {
+          _id: '$userId',
+          totalDistance: { $sum: '$distance' },
+          activityCount: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { totalDistance: -1 }
+      },
+      {
+        $limit: 10
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'user'
+        }
+      },
+      {
+        $unwind: {
+          path: '$user',
+          preserveNullAndEmptyArrays: false
+        }
+      },
+      {
+        $match: {
+          'user.active': true
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          userId: '$_id',
+          name: '$user.name',
+          photo: '$user.photo',
+          totalDistance: { $round: ['$totalDistance', 2] },
+          activityCount: 1
+        }
+      }
+    ]);
+
+    res.json({
+      success: true,
+      data: { runners: topRunners }
+    });
+  } catch (error) {
+    console.error('Erro ao obter top corredores:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao obter top corredores'
+    });
+  }
+};
+
 export default {
   getProfile,
   updateProfile,
@@ -478,5 +770,9 @@ export default {
   getUserById,
   listUsers,
   updateUser,
-  deactivateUser
+  deactivateUser,
+  getPublicProfile,
+  getPublicStats,
+  getPublicWorkouts,
+  getTopRunners
 };

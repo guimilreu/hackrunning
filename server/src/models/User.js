@@ -311,6 +311,11 @@ userSchema.virtual('lastName').get(function() {
   return parts?.slice(1).join(' ') || '';
 });
 
+// Campo virtual para compatibilidade com código que usa city diretamente
+userSchema.virtual('city').get(function() {
+  return this.address?.city || '';
+});
+
 // Garantir que campos virtuais sejam incluídos na serialização JSON
 userSchema.set('toJSON', { virtuals: true });
 userSchema.set('toObject', { virtuals: true });

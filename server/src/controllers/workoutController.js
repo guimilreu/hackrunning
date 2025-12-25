@@ -11,16 +11,33 @@ export const create = async (req, res) => {
   try {
     const { type, date, distance, time, workoutType, notes, trainingPlanWorkoutId, instagramStoryLink } = req.body;
 
+    // Garantir que a data seja processada corretamente
+    let workoutDate;
+    if (date) {
+      // Se já for uma string ISO ou Date, usar diretamente
+      workoutDate = date instanceof Date ? date : new Date(date);
+      // Validar se a data é válida
+      if (isNaN(workoutDate.getTime())) {
+        console.warn('Data inválida recebida, usando data atual:', date);
+        workoutDate = new Date();
+      }
+    } else {
+      workoutDate = new Date();
+    }
+
     const workout = new Workout({
       userId: req.user._id,
       type: type || 'individual',
-      date: date || new Date(),
+      date: workoutDate,
       distance,
       time,
       workoutType,
       notes,
       instagramStoryLink: instagramStoryLink || '',
-      trainingPlanId: req.user.currentTrainingPlan?.cycleId || null
+      trainingPlanId: req.user.currentTrainingPlan?.cycleId || null,
+      hpoints: {
+        status: 'pending'
+      }
     });
 
     await workout.save();
@@ -86,7 +103,7 @@ export const uploadPhoto = async (req, res) => {
       thumbnailUrl: result.thumbnailUrl,
       validated: false
     };
-    workout.hpointsStatus = 'pending';
+    workout.hpoints.status = 'pending';
     await workout.save();
 
     res.json({
@@ -108,6 +125,7 @@ export const uploadPhoto = async (req, res) => {
 
 /**
  * Listar treinos do usuário (ou feed de comunidade se status=approved)
+ * O feed da comunidade mostra todos os treinos de todos os usuários
  */
 export const list = async (req, res) => {
   try {
@@ -122,12 +140,12 @@ export const list = async (req, res) => {
       sort = '-date' 
     } = req.query;
 
-    // Se status=approved, retorna feed da comunidade (treinos de todos)
+    // Se status=approved, retorna feed da comunidade (todos os treinos)
     const isCommunityFeed = status === 'approved';
     
     const query = isCommunityFeed 
-      ? { 'hpoints.status': 'approved' }
-      : { userId: req.user._id };
+      ? {} // Feed da comunidade: todos os treinos de todos os usuários
+      : { userId: req.user._id }; // Feed pessoal: apenas treinos do usuário
     
     if (type) query.type = type;
     if (workoutType) query.workoutType = workoutType;
@@ -136,10 +154,10 @@ export const list = async (req, res) => {
       if (startDate) query.date.$gte = new Date(startDate);
       if (endDate) query.date.$lte = new Date(endDate);
     }
-
+    
     const [workouts, total] = await Promise.all([
       Workout.find(query)
-        .populate(isCommunityFeed ? { path: 'userId', select: 'name photo' } : '')
+        .populate({ path: 'userId', select: 'name photo' })
         .populate('likes', 'name photo')
         .populate('comments.userId', 'name photo')
         .sort(sort)
@@ -151,14 +169,16 @@ export const list = async (req, res) => {
     // Formatar dados para feed da comunidade
     const formattedWorkouts = workouts.map(w => {
       const workoutObj = w.toObject();
+      // Verificar se userId está populado (objeto) ou apenas ID (string)
+      const userPopulated = w.userId && typeof w.userId === 'object' && w.userId.name;
       return {
         ...workoutObj,
-        user: w.userId ? { 
+        user: userPopulated ? { 
           _id: w.userId._id,
           name: w.userId.name, 
           photo: w.userId.photo 
         } : null,
-        userId: w.userId?._id // Manter o userId como ID para comparação
+        userId: userPopulated ? w.userId._id : w.userId // Manter o userId como ID para comparação
       };
     });
 
@@ -201,9 +221,23 @@ export const getById = async (req, res) => {
       });
     }
 
+    // Formatar resposta com dados do usuário padronizados
+    const workoutObj = workout.toObject();
+    const userPopulated = workout.userId && typeof workout.userId === 'object' && workout.userId.name;
+    
+    const formattedWorkout = {
+      ...workoutObj,
+      user: userPopulated ? {
+        _id: workout.userId._id,
+        name: workout.userId.name,
+        photo: workout.userId.photo
+      } : null,
+      userId: userPopulated ? workout.userId._id : workout.userId
+    };
+
     res.json({
       success: true,
-      data: { workout }
+      data: { workout: formattedWorkout }
     });
   } catch (error) {
     console.error('Erro ao obter treino:', error);
@@ -231,7 +265,7 @@ export const update = async (req, res) => {
     }
 
     // Não permite editar treino já validado
-    if (workout.hpointsStatus === 'approved') {
+    if (workout.hpoints.status === 'approved') {
       return res.status(400).json({
         success: false,
         message: 'Não é possível editar um treino já validado'
@@ -275,7 +309,7 @@ export const remove = async (req, res) => {
       });
     }
 
-    if (workout.hpointsStatus === 'approved') {
+    if (workout.hpoints.status === 'approved') {
       return res.status(400).json({
         success: false,
         message: 'Não é possível excluir um treino já validado'
@@ -541,7 +575,7 @@ export const listPending = async (req, res) => {
         .limit(parseInt(limit))
         .populate('user', 'firstName lastName email'),
       Workout.countDocuments({ 
-        hpointsStatus: 'pending',
+        'hpoints.status': 'pending',
         'photo.url': { $exists: true }
       })
     ]);
@@ -582,7 +616,7 @@ export const approve = async (req, res) => {
       });
     }
 
-    if (workout.hpointsStatus === 'approved') {
+    if (workout.hpoints.status === 'approved') {
       return res.status(400).json({
         success: false,
         message: 'Treino já foi aprovado'
@@ -608,11 +642,11 @@ export const approve = async (req, res) => {
     }
 
     // Atualizar treino
-    workout.hpointsStatus = 'approved';
-    workout.hpointsAwarded = totalPoints;
+    workout.hpoints.status = 'approved';
+    workout.hpoints.points = totalPoints;
+    workout.hpoints.validatedBy = req.user._id;
+    workout.hpoints.validatedAt = new Date();
     workout.photo.validated = true;
-    workout.photo.validatedAt = new Date();
-    workout.photo.validatedBy = req.user._id;
     await workout.save();
 
     // Creditar pontos
@@ -627,9 +661,9 @@ export const approve = async (req, res) => {
     await notificationService.notifyWorkoutApproved(workout.user._id, totalPoints);
 
     // Log de auditoria
-    await AuditLog.logUpdate('workout', id, req.user._id, 
-      { hpointsStatus: 'pending' }, 
-      { hpointsStatus: 'approved', hpointsAwarded: totalPoints }, 
+    await AuditLog.logUpdate(req.user._id, 'workout', id, 
+      { 'hpoints.status': 'pending' }, 
+      { 'hpoints.status': 'approved', 'hpoints.points': totalPoints }, 
       req
     );
 
@@ -673,18 +707,18 @@ export const reject = async (req, res) => {
       });
     }
 
-    workout.hpointsStatus = 'rejected';
+    workout.hpoints.status = 'rejected';
+    workout.hpoints.rejectionReason = reason;
     workout.photo.validated = false;
-    workout.photo.rejectionReason = reason;
     await workout.save();
 
     // Notificar usuário
     await notificationService.notifyWorkoutRejected(workout.user._id, reason);
 
     // Log de auditoria
-    await AuditLog.logUpdate('workout', id, req.user._id,
-      { hpointsStatus: 'pending' },
-      { hpointsStatus: 'rejected', reason },
+    await AuditLog.logUpdate(req.user._id, 'workout', id,
+      { 'hpoints.status': 'pending' },
+      { 'hpoints.status': 'rejected', 'hpoints.rejectionReason': reason },
       req
     );
 
@@ -727,13 +761,13 @@ export const getStats = async (req, res) => {
           totalTime: { $sum: '$time' },
           avgDistance: { $avg: '$distance' },
           pendingValidation: {
-            $sum: { $cond: [{ $eq: ['$hpointsStatus', 'pending'] }, 1, 0] }
+            $sum: { $cond: [{ $eq: ['$hpoints.status', 'pending'] }, 1, 0] }
           },
           approved: {
-            $sum: { $cond: [{ $eq: ['$hpointsStatus', 'approved'] }, 1, 0] }
+            $sum: { $cond: [{ $eq: ['$hpoints.status', 'approved'] }, 1, 0] }
           },
           rejected: {
-            $sum: { $cond: [{ $eq: ['$hpointsStatus', 'rejected'] }, 1, 0] }
+            $sum: { $cond: [{ $eq: ['$hpoints.status', 'rejected'] }, 1, 0] }
           }
         }
       }

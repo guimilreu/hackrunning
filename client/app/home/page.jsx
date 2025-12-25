@@ -49,6 +49,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { Progress } from "@/components/ui/progress";
+import { TopRunnersWidget } from "@/components/home/TopRunnersWidget";
 
 export default function HomePage() {
 	const { user } = useAuthStore();
@@ -164,7 +165,7 @@ export default function HomePage() {
 			<div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-white/5 pb-8">
 				<div className="space-y-1">
 					<h1 className="text-4xl md:text-5xl font-bold tracking-tighter text-white">
-						Olá, <span className="text-gradient-primary">{user?.name?.split(" ")[0] || "Atleta"}</span>
+						Olá, <span className="text-gradient-primary">{user?.name?.split(" ")[0] || "Runner"}</span>
 					</h1>
 					<p className="text-zinc-400 text-lg">Vamos movimentar essa comunidade hoje?</p>
 				</div>
@@ -244,7 +245,7 @@ export default function HomePage() {
 
 						{/* HPoints Widget */}
 						<motion.div variants={item} className="glass-card rounded-3xl p-6 border-white/5">
-							<div className="flex items-center gap-3 mb-4">
+							<div className="flex items-center gap-3">
 								<div className="p-2 bg-primary/10 rounded-lg text-primary">
 									<Trophy className="w-5 h-5" />
 								</div>
@@ -256,11 +257,11 @@ export default function HomePage() {
 									</span>
 								</div>
 							</div>
-							<Link href="/store" className="block">
+							{/* <Link href="/store" className="block">
 								<Button className="w-full bg-white/5 hover:bg-white/10 text-white border-0 justify-between group-hover:pl-6 transition-all">
 									Ir para a loja <ArrowRight className="w-4 h-4" />
 								</Button>
-							</Link>
+							</Link> */}
 						</motion.div>
 
 						{/* Next Together */}
@@ -389,14 +390,22 @@ export default function HomePage() {
 														</AvatarFallback>
 													</Avatar>
 													<div>
-														<p className="font-bold text-white text-sm hover:text-primary cursor-pointer transition-colors">
-															{activity.user?.name || user?.name || "Atleta"}
-															{isOwnActivity && (
+														{isOwnActivity ? (
+															<p className="font-bold text-white text-sm">
+																{activity.user?.name || user?.name || "Runner"}
 																<span className="text-zinc-500 text-[10px] font-normal ml-2">
 																	(Você)
 																</span>
-															)}
-														</p>
+															</p>
+														) : (
+															<Link 
+																href={`/runner/${activity.userId?._id || activity.userId || activity.user?._id}`}
+																onClick={(e) => e.stopPropagation()}
+																className="font-bold text-white text-sm hover:text-primary cursor-pointer transition-colors block"
+															>
+																{activity.user?.name || "Runner"}
+															</Link>
+														)}
 														<p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wide">
 															{activity.date
 																? safeFormatDate(activity.date, "dd 'de' MMM • HH:mm")
@@ -444,9 +453,6 @@ export default function HomePage() {
 												<div className="flex justify-between items-start mb-4">
 													<h3 className="text-xl font-bold text-white mb-1">
 														{activity.distance} km
-														<span className="text-zinc-500 text-sm font-normal ml-2">
-															corrida
-														</span>
 													</h3>
 													<div className="flex items-center gap-4 text-sm font-mono text-zinc-300">
 														{activity.pace && (
@@ -613,7 +619,7 @@ export default function HomePage() {
 
 					{/* HPoints Widget */}
 					<motion.div variants={item} className="glass-card rounded-3xl p-6 border-white/5">
-						<div className="flex items-center gap-3 mb-4">
+						<div className="flex items-center gap-3">
 							<div className="p-2 bg-primary/10 rounded-lg text-primary">
 								<Trophy className="w-5 h-5" />
 							</div>
@@ -625,11 +631,11 @@ export default function HomePage() {
 								</span>
 							</div>
 						</div>
-						<Link href="/store" className="block">
+						{/* <Link href="/store" className="block">
 							<Button className="w-full bg-white/5 hover:bg-white/10 text-white border-0 justify-between group-hover:pl-6 transition-all">
 								Ir para a loja <ArrowRight className="w-4 h-4" />
 							</Button>
-						</Link>
+						</Link> */}
 					</motion.div>
 
 					{/* Next Together */}
@@ -706,6 +712,9 @@ export default function HomePage() {
 							<p className="text-sm text-zinc-500">Nenhum evento próximo.</p>
 						)}
 					</motion.div>
+
+					{/* Top 10 Runners Widget */}
+					<TopRunnersWidget />
 				</motion.div>
 			</div>
 

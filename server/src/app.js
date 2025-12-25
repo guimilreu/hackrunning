@@ -22,7 +22,7 @@ import { initializeJobs } from './jobs/index.js';
 import logger from './utils/logger.js';
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // ========== MIDDLEWARES DE SEGURANÇA ==========

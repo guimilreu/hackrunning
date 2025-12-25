@@ -167,7 +167,7 @@ export const subscribe = async (req, res) => {
     }
 
     // Log de auditoria
-    await AuditLog.logCreate('subscription', subscription._id, userId, {
+    await AuditLog.logCreate(userId, 'subscription', subscription._id, {
       plan: planId,
       value: plan.price,
       asaasSubscriptionId: asaasSubscription.id
@@ -275,7 +275,7 @@ export const changePlan = async (req, res) => {
     });
 
     // Log de auditoria
-    await AuditLog.logUpdate('subscription', subscription._id, userId,
+    await AuditLog.logUpdate(userId, 'subscription', subscription._id,
       { plan: oldPlan },
       { plan: planId },
       req
@@ -364,7 +364,7 @@ export const cancelSubscription = async (req, res) => {
     });
 
     // Log de auditoria
-    await AuditLog.logUpdate('subscription', subscription._id, userId,
+    await AuditLog.logUpdate(userId, 'subscription', subscription._id,
       { plan: previousPlan, status: 'active' },
       { plan: subscription.plan, status: 'cancelled', reason },
       req
@@ -677,7 +677,7 @@ export const adminUpdateSubscription = async (req, res) => {
     }
 
     // Log de auditoria
-    await AuditLog.logUpdate('subscription', id, req.user._id,
+    await AuditLog.logUpdate(req.user._id, 'subscription', id,
       oldData,
       { plan, status },
       req

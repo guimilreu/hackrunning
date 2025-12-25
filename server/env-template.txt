@@ -28,7 +28,7 @@ MAPBOX_ACCESS_TOKEN=seu-mapbox-access-token
 # Strava (Integração)
 STRAVA_CLIENT_ID=seu-strava-client-id
 STRAVA_CLIENT_SECRET=seu-strava-client-secret
-STRAVA_REDIRECT_URI=http://localhost:5000/api/auth/strava/callback
+STRAVA_REDIRECT_URI=http://localhost:4000/api/auth/strava/callback
 STRAVA_CLUB_ID=id-do-clube-strava-opcional
 ENCRYPTION_KEY=sua-chave-de-criptografia-32-caracteres
 
@@ -36,6 +36,6 @@ ENCRYPTION_KEY=sua-chave-de-criptografia-32-caracteres
 FRONTEND_URL=http://localhost:3000
 
 # Server
-PORT=5000
+PORT=4000
 NODE_ENV=development
 ENABLE_JOBS=false

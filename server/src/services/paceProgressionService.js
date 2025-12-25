@@ -5,7 +5,7 @@
  */
 
 /**
- * Taxas de melhoria por nível de atleta (por bloco de 4 semanas)
+ * Taxas de melhoria por nível de runner (por bloco de 4 semanas)
  * Valores em porcentagem de melhoria
  */
 export const IMPROVEMENT_RATES = {
@@ -39,7 +39,7 @@ const PACE_IMPROVEMENT_FACTORS = {
 /**
  * Calcula o fator de ajuste de pace para uma semana específica
  * @param {number} weekNumber - Número da semana (1-12)
- * @param {string} level - Nível do atleta
+ * @param {string} level - Nível do runner
  * @returns {number} Fator de ajuste (ex: 0.98 = 2% mais rápido)
  */
 export const calculatePaceAdjustmentFactor = (weekNumber, level) => {
@@ -68,7 +68,7 @@ export const calculatePaceAdjustmentFactor = (weekNumber, level) => {
  * Aplica progressão aos paces originais
  * @param {Object} originalPaces - Paces calculados inicialmente
  * @param {number} weekNumber - Número da semana
- * @param {string} level - Nível do atleta
+ * @param {string} level - Nível do runner
  * @returns {Object} Paces ajustados
  */
 export const applyPaceProgression = (originalPaces, weekNumber, level) => {
@@ -135,7 +135,7 @@ export const applyPaceProgression = (originalPaces, weekNumber, level) => {
 /**
  * Calcula a melhoria esperada após um ciclo completo
  * @param {Object} originalPaces - Paces iniciais
- * @param {string} level - Nível do atleta
+ * @param {string} level - Nível do runner
  * @returns {Object} Objeto com paces projetados e porcentagem de melhoria
  */
 export const projectEndOfCycleImprovement = (originalPaces, level) => {
@@ -185,7 +185,7 @@ export const calculatePaceDifference = (originalPace, newPace) => {
 /**
  * Gera relatório de progressão de paces para todas as semanas
  * @param {Object} originalPaces - Paces iniciais
- * @param {string} level - Nível do atleta
+ * @param {string} level - Nível do runner
  * @returns {Array} Array com paces para cada semana
  */
 export const generatePaceProgressionReport = (originalPaces, level) => {

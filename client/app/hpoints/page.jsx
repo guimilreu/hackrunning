@@ -114,7 +114,7 @@ export default function HPointsPage() {
 					</motion.div>
 
 					{/* Seção de Missões (Quests) */}
-					<motion.div variants={item}>
+					{/* <motion.div variants={item}>
 						<div className="flex items-center justify-between mb-4">
 							<h2 className="text-xl font-bold text-white flex items-center gap-2">
 								<Medal className="w-5 h-5 text-[#eeff00]" />
@@ -142,7 +142,6 @@ export default function HPointsPage() {
 									<h3 className="font-bold text-white text-sm mb-1">{quest.title}</h3>
 									<p className="text-xs text-zinc-400 mb-3 line-clamp-2">{quest.desc}</p>
 
-									{/* Progress Bar Mini */}
 									<div className="w-full bg-white/10 h-1 rounded-full overflow-hidden">
 										<div
 											className="bg-primary h-full transition-all duration-500"
@@ -158,7 +157,7 @@ export default function HPointsPage() {
 								</div>
 							))}
 						</div>
-					</motion.div>
+					</motion.div> */}
 
 					{/* Histórico Recente */}
 					<motion.div variants={item} className="pt-4">

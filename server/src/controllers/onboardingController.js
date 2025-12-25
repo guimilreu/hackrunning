@@ -673,7 +673,7 @@ export const complete = async (req, res) => {
     }
 
     // Log de auditoria
-    await AuditLog.logCreate('onboarding', user._id, req.user._id, {
+    await AuditLog.logCreate(req.user._id, 'onboarding', user._id, {
       objective: user.runningProfile?.objective,
       level: user.runningProfile?.level
     }, req);

@@ -34,7 +34,7 @@ const NAV_CATEGORIES = [
     label: 'Eventos e Loja',
     items: [
       { label: 'Eventos', href: '/races', icon: Award },
-      { label: 'Loja', href: '/store', icon: ShoppingBag },
+      // { label: 'Loja', href: '/store', icon: ShoppingBag },
     ]
   },
 ];
@@ -128,7 +128,7 @@ export default function AppLayout({ children }) {
     { label: 'Treinos', href: '/training-plan', icon: Calendar },
 	{ label: 'Desafios', href: '/challenges', icon: Trophy },
 	{ label: 'Eventos', href: '/races', icon: Award },
-	{ label: 'Loja', href: '/store', icon: ShoppingBag },
+	// { label: 'Loja', href: '/store', icon: ShoppingBag },
     { label: 'Perfil', href: '/profile', icon: User },
   ];
 
